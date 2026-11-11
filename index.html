@@ -1,0 +1,153 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trade Bot — Live</title>
+<script>window.DATA_URL='https://raw.githubusercontent.com/Arxhsz/tb-a8e5a0bf6c8b0b7db0a5ba8d/data/data.json'</script><script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#0b0f14;--card:#121821;--line:#1f2a36;--mut:#8a97a8;--txt:#e6edf3;--g:#22c55e;--r:#ef4444;--y:#eab308;--b:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.4 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:12px}header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+h1{font-size:18px;margin:4px 0}.mut{color:var(--mut)}.g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.k{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.v{font-size:22px;font-weight:700;margin-top:2px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:600;font-size:12px}
+.pg{background:#14532d;color:#86efac}.pr{background:#7f1d1d;color:#fecaca}.py{background:#713f12;color:#fde68a}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}@media(max-width:820px){.cols{grid-template-columns:1fr}}
+.coin{font-size:28px;font-weight:800}a{color:var(--b);text-decoration:none}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--mut);font-weight:500}.tw{overflow-x:auto}
+#chart{height:300px;margin-top:8px}.feed{max-height:560px;overflow-y:auto}.ev{padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.ev .t{color:var(--mut);font-size:11px;margin-right:6px}.kb{color:var(--g);font-weight:700}.ks{color:var(--y);font-weight:700}.kh{color:var(--r);font-weight:700}
+.row{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}.row div{min-width:110px}
+.bots{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:8px}.bot{background:#0f141b;border:1px solid var(--line);border-radius:10px;padding:10px}
+.bot h3{margin:0 0 2px;font-size:15px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}.bot ul{margin:6px 0 0;padding-left:16px;font-size:12.5px}.bot li{margin:2px 0}
+.desk2{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:10px;margin-top:10px}.small{font-size:12px}.tag{font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px}
+.rules{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:13px;margin-top:8px}.rules div:nth-child(odd){color:var(--mut)}.halt{margin-top:6px;font-weight:700}
+.kv{color:#f87171;font-weight:600}.kvamp{color:#c084fc}.kswing{color:#fbbf24}.kchart{color:#7dd3fc}.kcat{color:#a3e635}
+</style></head><body><div class="wrap">
+<header><div><h1>🤖 Trade Bot — Live Dashboard</h1><div class="mut" id="sub">loading…</div></div><div id="statuspill"></div></header>
+<div class="grid">
+ <div class="card"><div class="k">Total value</div><div class="v" id="total">—</div><div class="mut" id="totsol"></div></div>
+ <div class="card"><div class="k">Today P&amp;L</div><div class="v" id="pnl">—</div><div class="mut" id="pnlsub"></div></div>
+ <div class="card"><div class="k">Wallet SOL</div><div class="v" id="wal">—</div><div class="mut" id="dep"></div></div>
+ <div class="card"><div class="k">Trades today</div><div class="v" id="tc">—</div><div class="mut" id="wl"></div></div>
+</div>
+<div class="cols">
+ <div>
+  <div class="card" id="openc"></div>
+  <div class="card" style="margin-top:10px"><div class="k">Past trades today</div><div class="tw"><table><thead><tr><th>Time ET</th><th>Coin</th><th>Buy</th><th>Sell</th><th>P&amp;L</th><th>Hold</th><th>Tx</th></tr></thead><tbody id="tr"></tbody></table></div></div>
+  <div class="card" style="margin-top:10px"><div class="k">Bot health</div><div class="row" id="health"></div></div>
+ </div>
+ <div class="card"><div class="k">Live activity <span class="mut" style="text-transform:none">(newest first)</span></div><div class="feed" id="feed"></div></div>
+</div>
+<div class="card" style="margin-top:10px" id="deskc"><div class="k">Trading desk <span class="mut" style="text-transform:none">— Trade Bot (main) oversees three helper bots</span></div><div class="bots" id="bots"></div>
+<div class="desk2">
+ <div class="card"><div class="k">Chart bot verdicts</div><div class="tw"><table><thead><tr><th>Coin</th><th>Verdict</th><th>Why</th></tr></thead><tbody id="verd"></tbody></table></div></div>
+ <div class="card"><div class="k">Skeptic — current calls</div><div class="tw"><table><thead><tr><th>Coin</th><th>Call</th><th>Reasons</th></tr></thead><tbody id="vetoes"></tbody></table></div>
+  <div class="k" style="margin-top:10px">Recent vetoes on engine candidates</div><div id="rvetoes" class="small"></div></div>
+ <div class="card"><div class="k">Scout — swing alerts <span class="mut" id="swt" style="text-transform:none"></span></div><div id="swing" class="small"></div>
+  <div class="k" style="margin-top:10px">Rising buyers on pump.fun</div><div id="rising" class="small"></div>
+  <div class="k" style="margin-top:10px">Vamps (copycat coins)</div><div id="vamps" class="small"></div>
+  <div class="k" style="margin-top:10px">Catalyst summary <span class="mut" id="catt" style="text-transform:none"></span></div><div id="cat" class="small"></div></div>
+ <div class="card"><div class="k">Rules in force <span class="mut" style="text-transform:none">(read live from the bot's config)</span></div><div class="halt" id="haltp"></div><div class="rules" id="rules"></div></div>
+</div></div>
+<p class="mut" style="font-size:11px">Auto-refreshes every 5s. Public on-chain data only. Wallet <a id="wl2" target="_blank"></a></p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const usd=x=>x==null?'—':(x<0?'-$':'$')+Math.abs(x).toFixed(2);
+const sgn=x=>x>=0?'g':'r';const pct=x=>x==null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';
+const dur=s=>{s=Math.round(s);return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s'};
+const short=s=>s?s.slice(0,4)+'…'+s.slice(-4):'';
+let chart,series,lines=[],chartMint=null,candleData=[];
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function drawChart(o){
+ const el=$('chart');if(!el)return;
+ if(!chart||chartMint!==o.mint){el.innerHTML='';chart=LightweightCharts.createChart(el,{layout:{background:{color:'#121821'},textColor:'#8a97a8'},grid:{vertLines:{color:'#1a2330'},horzLines:{color:'#1a2330'}},timeScale:{timeVisible:true,secondsVisible:true},rightPriceScale:{borderColor:'#1f2a36'},localization:{timeFormatter:t=>new Date(t*1000).toLocaleTimeString('en-US',{timeZone:'America/New_York'})+' ET'}});
+  series=chart.addCandlestickSeries({upColor:'#22c55e',downColor:'#ef4444',borderVisible:false,wickUpColor:'#22c55e',wickDownColor:'#ef4444',priceFormat:{type:'price',precision:10,minMove:1e-10}});chartMint=o.mint;lines=[];
+  new ResizeObserver(()=>chart.applyOptions({width:el.clientWidth})).observe(el);}
+ const raw=(o.candles||[]).map(x=>({time:x[0],open:x[1],high:x[2],low:x[3],close:x[4]}));const c=[];
+ const endB=Math.floor(Date.now()/1000/15)*15;
+ for(let k=0;k<raw.length;k++){const x=raw[k];if(c.length){let prev=c[c.length-1];for(let t=prev.time+15;t<x.time;t+=15)c.push({time:t,open:prev.close,high:prev.close,low:prev.close,close:prev.close});prev=c[c.length-1];if(x.open!==x.open)x.open=prev.close;}c.push(x)}
+ if(c.length){let prev=c[c.length-1];for(let t=prev.time+15;t<=endB;t+=15)c.push({time:t,open:prev.close,high:prev.close,low:prev.close,close:prev.close})}
+ if(live.mint===o.mint&&Date.now()/1000-live.t<20&&c.length){const L=c[c.length-1];if(L.time===endB){L.close=live.px;L.high=Math.max(L.high,live.px);L.low=Math.min(L.low,live.px)}}
+ candleData=c;series.setData(c);
+ lines.forEach(l=>series.removePriceLine(l));lines=[];
+ const add=(p,col,t)=>{if(p)lines.push(series.createPriceLine({price:p,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:t}))};
+ add(o.entry_px,'#38bdf8','Entry');add(o.stop_px,'#ef4444','Stop');add(o.tp1_px,'#22c55e','TP1 +20%');add(o.tp2_px,'#16a34a','TP2 +40%');
+ if(c.length&&o.buy_ts) series.setMarkers([{time:c.reduce((a,x)=>x.time<=o.buy_ts?x.time:a,c[0].time),position:'belowBar',color:'#38bdf8',shape:'arrowUp',text:'BUY'}]);
+}
+function render(d){
+ const s=d.status, age=(Date.now()/1000-d.updated);
+ $('sub').innerHTML=`Updated ${esc(d.updated_et)} · SOL ${usd(d.sol_usd)} · <span id="age"></span>`;
+ $('statuspill').innerHTML=s.halted?`<span class="pill pr">${esc(s.halt_plain||('HALTED: '+(s.halt_reason||'')))}</span>`:(!s.engine_ok?'<span class="pill py">ENGINE QUIET</span>':'<span class="pill pg">● TRADING</span>');
+ $('total').textContent=usd(d.total_usd);$('totsol').textContent=d.total_sol.toFixed(4)+' SOL';
+ $('pnl').innerHTML=`<span class="${sgn(d.pnl_usd)}">${usd(d.pnl_usd)}</span>`;$('pnlsub').innerHTML=`${pct(d.pnl_pct)} vs start ${d.start_sol.toFixed(4)} SOL`;
+ $('wal').textContent=d.wallet_sol==null?'—':d.wallet_sol.toFixed(4);$('dep').textContent='In trades: '+d.deployed_sol.toFixed(4)+' SOL';
+ $('tc').textContent=d.trades.length+(d.open.length?' + '+d.open.length+' open':'');
+ const w=d.trades.filter(t=>t.pnl_sol>0).length;$('wl').textContent=`${w} wins · ${d.trades.length-w} losses`;
+ $('wl2').textContent=short(d.wallet);$('wl2').href='https://solscan.io/account/'+d.wallet;
+ const oc=$('openc');
+ if(!d.open.length){oc.innerHTML='<div class="k">Current trade</div><div class="coin mut" style="font-size:20px;margin:14px 0">No open trade — scanning for setups…</div>';chart=null;chartMint=null}
+ else{const o=d.open[0];
+  if(chartMint!==o.mint||!$('chart')){oc.innerHTML=`<div class="k">Current trade</div><div class="coin" id="cn"></div><div class="mut" id="cmeta"></div><div class="row" id="ostats"></div><div id="chart"></div><div class="mut" id="cwhy" style="font-size:12px;margin-top:6px"></div>`;chart=null}
+  $('cn').innerHTML=`<a target="_blank" style="color:inherit" href="https://pump.fun/coin/${o.mint}">${esc(o.coin)} ↗</a> <span class="${sgn(o.ret_pct||0)}" style="font-size:22px">${pct(o.ret_pct)}</span>`;
+  $('cmeta').innerHTML=`${esc(o.name||'')} · <a target="_blank" href="https://pump.fun/coin/${o.mint}">view on pump.fun</a> · <a target="_blank" href="https://solscan.io/tx/${o.entry_sig}">buy tx</a> · setup: ${esc(o.setup)}`+(d.open.length>1?` · +${d.open.length-1} more open`:'');
+  $('ostats').innerHTML=`<div><div class="k">Entry</div>${o.entry_sol.toFixed(4)} SOL (${usd(o.entry_usd)})</div><div><div class="k">Now worth (bot)</div>${o.value_sol==null?'—':o.value_sol.toFixed(4)+' SOL ('+usd(o.value_usd)+')'}</div><div><div class="k">Live price value</div><span id="livev">…</span></div><div><div class="k">Entry time</div>${esc(o.entry_time)}</div><div><div class="k">Held</div>${dur(Date.now()/1000-o.buy_ts)}</div><div><div class="k">Best / worst</div><span class="g">${pct(o.high_ret)}</span> / <span class="r">${pct(o.low_ret)}</span></div><div><div class="k">Stop</div>${pct(o.stop_pct)}</div>`;
+  $('cwhy').textContent='Why: '+(o.why||'');drawChart(o);applyLive(o);}
+ $('tr').innerHTML=d.trades.map(t=>`<tr><td>${esc(t.sell_time||t.buy_time).replace(':00 ',' ')}</td><td><a target="_blank" href="https://pump.fun/coin/${t.mint}">${esc(t.coin)}</a></td><td>${usd(t.buy_usd)}</td><td>${usd(t.sell_usd)}</td><td class="${sgn(t.pnl_usd)}">${usd(t.pnl_usd)} (${pct(t.pnl_pct)})</td><td>${dur(t.hold_s||0)}</td><td>${t.txs.map(x=>`<a target="_blank" href="https://solscan.io/tx/${x.sig}">${x.side[0]}${x.side=='PARTIAL_SELL'?'½':''}</a>`).join(' ')}</td></tr>`).join('')||'<tr><td colspan=7 class="mut">No closed trades yet today</td></tr>';
+ $('health').innerHTML=`<div><div class="k">Mode</div>${s.live?'LIVE':'SIM'}</div><div><div class="k">Last heartbeat</div><span class="${s.engine_ok?'g':'r'}">${esc(s.last_heartbeat_et||'—')}</span></div><div><div class="k">Price feed</div><span class="${s.feed_fresh?'g':'r'}">${s.feed_fresh?'fresh':'STALE'} (${s.feed_age_s==null?'?':Math.round(s.feed_age_s)+'s'})</span></div><div><div class="k">Buys</div>${s.halted?'<span class="r">paused</span>':'<span class="g">allowed</span>'}</div>`;
+ try{renderDesk(d)}catch(e){console.error(e)}
+ $('feed').innerHTML=d.activity.map(e=>{const cls={buy:'kb',sell:'ks',halt:'kh',stale:'kh',veto:'kv',vamp:'kvamp',swing:'kswing',chart:'kchart',catalyst:'kcat'}[e.kind]||'';const link=e.sig?` <a target="_blank" href="https://solscan.io/tx/${e.sig}">tx</a>`:'';const txt=esc(e.text).replace(/\{\{(\w+)\}\}/g,(m,k)=>`<a target="_blank" href="https://pump.fun/coin/${k}">${esc((d.names||{})[k]||k.slice(0,4)+'…'+k.slice(-4))}</a>`);return `<div class="ev"><span class="t">${esc(e.t)}</span><span class="${cls}">${txt}</span>${link}</div>`}).join('');
+}
+function coinA(d,m,sym){return `<a target="_blank" href="https://pump.fun/coin/${m}">${esc((d.names||{})[m]||sym||m.slice(0,4)+'…'+m.slice(-4))}</a>`}
+function renderDesk(d){
+ const k=d.desk;if(!k){$('deskc').style.display='none';return}
+ $('bots').innerHTML=k.bots.map(b=>`<div class="bot"><h3><span class="dot" style="background:${b.alive?'#22c55e':'#ef4444'}"></span>${esc(b.name)}</h3><div class="mut small">${b.alive?'alive':'<span class="r">not updating</span>'} · last update ${esc(b.last_et||'—')}${b.age_s!=null?' ('+Math.round(b.age_s)+'s ago)':''}</div><div class="mut small">${esc(b.role)}</div><ul>${(b.notes||[]).map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`).join('');
+ const vc={healthy:'g',mixed:'y',weak:'r'};
+ $('verd').innerHTML=(k.verdicts||[]).slice(0,7).map(v=>`<tr><td>${coinA(d,v.mint,v.symbol)}${v.cand?'<span class="tag pg">candidate</span>':''}</td><td class="${vc[v.verdict]||''}">${esc(v.verdict)} ${Math.round(v.score)}</td><td class="small" style="white-space:normal">${esc((v.notes||[]).slice(0,3).join(' · '))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">No candidates right now</td></tr>';
+ $('vetoes').innerHTML=(k.vetoes||[]).slice(0,8).map(v=>`<tr><td>${coinA(d,v.mint,v.symbol)}${v.cand?'<span class="tag pg">candidate</span>':''}</td><td>${v.veto?'<span class="pill pr">VETO</span>':'<span class="pill pg">no objection</span>'}</td><td class="small" style="white-space:normal">${esc((v.veto?v.reasons:v.soft).join(' · '))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">Nothing to argue about</td></tr>';
+ $('rvetoes').innerHTML=(k.recent_vetoes||[]).slice(0,6).map(x=>`<div class="ev"><span class="t">${esc(x.t)}</span>${coinA(d,x.mint,x.symbol)}: ${esc(x.reasons.join('; '))}</div>`).join('')||'<span class="mut">none yet</span>';
+ $('swt').textContent=k.swing.t?'(checked '+k.swing.t+', every 5 min, moves ≥15%)':'';
+ $('swing').innerHTML=(k.swing.items||[]).map(x=>`<div class="ev">${coinA(d,x.mint,x.symbol)} <span class="${x.move_pct>=0?'g':'r'}">${x.move_pct>=0?'+':''}${Number(x.move_pct).toFixed(0)}%</span> <span class="mut">${esc(x.src)}</span></div>`).join('')||'<span class="mut">no big swings</span>';
+ $('rising').innerHTML=(k.rising||[]).map(x=>`<span style="margin-right:10px">${coinA(d,x.mint,x.symbol)} ${x.pb}→${x.b}/30s</span>`).join('')||'<span class="mut">none</span>';
+ $('vamps').innerHTML=(k.vamps||[]).map(v=>`<div class="ev">${coinA(d,v.mint,v.symbol)} copies ${esc(v.orig)} ($${Number(v.orig_mcap||0).toLocaleString()}) · own mcap $${Number(v.mcap_usd||0).toLocaleString()} ${v.ignored?'<span class="mut">— ignored (under $500k)</span>':'<span class="y">— flagged</span>'}</div>`).join('')||'<span class="mut">none found</span>';
+ $('catt').textContent=k.catalyst.t?'(written '+k.catalyst.t+', every 30 min)':'';$('cat').textContent=k.catalyst.text||'—';
+ $('haltp').innerHTML=`<span class="${d.status.halted?'r':'g'}">${esc(d.status.halt_plain||'')}</span>`;
+ $('rules').innerHTML=(d.rules||[]).map(r=>`<div>${esc(r.k)}</div><div>${esc(r.v)}</div>`).join('');
+}
+let lastSlot=0,tried=new Set(),lastData=null,live={};
+async function get(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw 0;return r.json()}
+function staleLabel(){if(!lastData)return;const age=Date.now()/1000-lastData.updated;const el=$('age');if(el)el.innerHTML=age>15?`<span class="r">⚠ data ${Math.round(age)}s old</span>`:`<span class="g">● live (${Math.max(0,Math.round(age))}s)</span>`}
+// raw.githubusercontent.com caches each path ~5 min (even 404s), so the box writes one file per 5s slot
+// and the page only asks for a slot ~3s after it starts (never a future slot).
+async function tick(){
+ try{
+  if(!window.DATA_URL){lastData=await get('data.json?t='+Date.now());render(lastData)}else{
+  const base=window.DATA_URL.replace(/data\.json$/,'s/');
+  const S=Math.floor((Date.now()/1000-3)/5);
+  for(const sl of [S,S-1,S-2]){
+   if(sl<=lastSlot)break; if(tried.has(sl))continue; tried.add(sl);
+   try{const d=await get(base+sl+'.json');lastSlot=sl;lastData=d;render(d);break}catch(e){}
+  }
+  if(!lastData){lastData=await get(window.DATA_URL);render(lastData)}}
+ }catch(e){}
+ staleLabel();
+}
+// live price for the open coin straight from Jupiter (CORS-allowed), every 5s
+async function livePrice(){
+ if(!lastData||!lastData.open.length)return;const o=lastData.open[0];
+ try{const r=await get('https://lite-api.jup.ag/price/v3?ids='+o.mint+',So11111111111111111111111111111111111111112');
+  const p=r[o.mint],sp=r['So11111111111111111111111111111111111111112'];if(!p||!sp)return;
+  live={mint:o.mint,px:p.usdPrice/sp.usdPrice,usd:p.usdPrice,t:Date.now()/1000};applyLive(o)}catch(e){}
+}
+function applyLive(o){
+ if(!live.mint||live.mint!==o.mint||!series)return;
+ const b=Math.floor(Date.now()/1000/15)*15;
+ const last=candleData.length?candleData[candleData.length-1]:null;
+ if(last&&last.time===b){last.high=Math.max(last.high,live.px);last.low=Math.min(last.low,live.px);last.close=live.px;series.update(last)}
+ else{const c={time:b,open:last?last.close:live.px,high:Math.max(last?last.close:live.px,live.px),low:Math.min(last?last.close:live.px,live.px),close:live.px};candleData.push(c);series.update(c)}
+ if(o.tokens_left){const v=o.tokens_left*live.usd;const pc=(live.px/o.entry_px-1)*100;
+  const el=$('livev');if(el)el.innerHTML=`${usd(v)} <span class="${sgn(pc)}">${pct(pc)}</span> <span class="mut" style="font-size:11px">live price ${new Date(live.t*1000).toLocaleTimeString('en-US',{timeZone:'America/New_York'})} ET</span>`}
+}
+tick();setInterval(tick,1000);setInterval(livePrice,5000);setTimeout(livePrice,1500);
+</script></body></html>
