@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Trade Bot — Live</title>
+<title>Trade Bot — PAPER</title>
 <script>window.DATA_URL='https://raw.githubusercontent.com/Arxhsz/tb-a8e5a0bf6c8b0b7db0a5ba8d/data/data.json'</script><script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#0b0f14;--card:#121821;--line:#1f2a36;--mut:#8a97a8;--txt:#e6edf3;--g:#22c55e;--r:#ef4444;--y:#eab308;--b:#38bdf8}
@@ -24,7 +24,19 @@ th{color:var(--mut);font-weight:500}.tw{overflow-x:auto}
 .rules{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:13px;margin-top:8px}.rules div:nth-child(odd){color:var(--mut)}.halt{margin-top:6px;font-weight:700}
 .kv{color:#f87171;font-weight:600}.kvamp{color:#c084fc}.kswing{color:#fbbf24}.kchart{color:#7dd3fc}.kcat{color:#a3e635}
 </style></head><body><div class="wrap">
-<header><div><h1>🤖 Trade Bot — Live Dashboard</h1><div class="mut" id="sub">loading…</div></div><div id="statuspill"></div></header>
+<header><div><h1>🤖 Trade Bot — Dashboard <span class="pill py">PAPER MODE</span></h1><div class="mut" id="sub">loading…</div></div><div id="statuspill"></div></header>
+
+<div class="card" style="margin-top:10px;border-color:#a16207" id="paperc"><div class="k">📄 Paper trading — four-agent early-momentum strategy <span class="mut" style="text-transform:none">(simulated, no real orders; started 1:01 PM ET Nov 11)</span></div>
+ <div class="row" id="pbooks"></div>
+ <div class="k" style="margin-top:10px">Open paper position</div><div id="popen" class="small"></div>
+ <div class="k" style="margin-top:10px">Group A (X confirmed) vs Group B (on-chain only)</div>
+ <div class="tw"><table><thead><tr><th>Book · Group</th><th>Trades</th><th>Win rate</th><th>Avg net win</th><th>Avg net loss</th><th>Expectancy</th><th>Profit factor</th><th>Max DD</th><th>Net P&amp;L</th><th>Costs</th></tr></thead><tbody id="pgroups"></tbody></table></div>
+ <div class="k" style="margin-top:10px">Paper trades</div>
+ <div class="tw"><table><thead><tr><th>Exit ET</th><th>Book</th><th>Grp</th><th>Coin</th><th>Setup</th><th>Size SOL</th><th>Exit tag</th><th>Net P&amp;L</th><th>MFE/MAE</th><th>Hold</th></tr></thead><tbody id="ptrades"></tbody></table></div>
+ <div class="k" style="margin-top:10px">Latest signals <span class="mut" id="pjl" style="text-transform:none"></span></div>
+ <div class="tw"><table><thead><tr><th>Time</th><th>Coin</th><th>Grp</th><th>Scout</th><th>Chart</th><th>Skeptic</th><th>Main (research / real)</th><th>Why</th></tr></thead><tbody id="psigs"></tbody></table></div>
+</div>
+<div class="k" style="margin-top:12px">Real wallet (earlier LIVE trades today; no live trading now)</div>
 <div class="grid">
  <div class="card"><div class="k">Total value</div><div class="v" id="total">—</div><div class="mut" id="totsol"></div></div>
  <div class="card"><div class="k">Today P&amp;L</div><div class="v" id="pnl">—</div><div class="mut" id="pnlsub"></div></div>
@@ -41,8 +53,8 @@ th{color:var(--mut);font-weight:500}.tw{overflow-x:auto}
 </div>
 <div class="card" style="margin-top:10px" id="deskc"><div class="k">Trading desk <span class="mut" style="text-transform:none">— Trade Bot (main) oversees three helper bots</span></div><div class="bots" id="bots"></div>
 <div class="desk2">
- <div class="card"><div class="k">Chart bot verdicts</div><div class="tw"><table><thead><tr><th>Coin</th><th>Verdict</th><th>Why</th></tr></thead><tbody id="verd"></tbody></table></div></div>
- <div class="card"><div class="k">Skeptic — current calls</div><div class="tw"><table><thead><tr><th>Coin</th><th>Call</th><th>Reasons</th></tr></thead><tbody id="vetoes"></tbody></table></div>
+ <div class="card"><div class="k">Chart — ENTER / WAIT / REJECT</div><div class="tw"><table><thead><tr><th>Coin</th><th>Verdict</th><th>Why</th></tr></thead><tbody id="verd"></tbody></table></div></div>
+ <div class="card"><div class="k">Skeptic — APPROVE / WAIT / VETO</div><div class="tw"><table><thead><tr><th>Coin</th><th>Call</th><th>Reasons</th></tr></thead><tbody id="vetoes"></tbody></table></div>
   <div class="k" style="margin-top:10px">Recent vetoes on engine candidates</div><div id="rvetoes" class="small"></div></div>
  <div class="card"><div class="k">Scout — swing alerts <span class="mut" id="swt" style="text-transform:none"></span></div><div id="swing" class="small"></div>
   <div class="k" style="margin-top:10px">Rising buyers on pump.fun</div><div id="rising" class="small"></div>
@@ -79,7 +91,7 @@ function drawChart(o){
 function render(d){
  const s=d.status, age=(Date.now()/1000-d.updated);
  $('sub').innerHTML=`Updated ${esc(d.updated_et)} · SOL ${usd(d.sol_usd)} · <span id="age"></span>`;
- $('statuspill').innerHTML=s.halted?`<span class="pill pr">${esc(s.halt_plain||('HALTED: '+(s.halt_reason||'')))}</span>`:(!s.engine_ok?'<span class="pill py">ENGINE QUIET</span>':'<span class="pill pg">● TRADING</span>');
+ $('statuspill').innerHTML='<span class="pill py">PAPER — no real orders</span> '+(s.halted?`<span class="pill pr">${esc(s.halt_plain||('HALTED: '+(s.halt_reason||'')))}</span>`:(!s.engine_ok?'<span class="pill py">ENGINE QUIET</span>':'<span class="pill pg">● PAPER ENGINE RUNNING</span>'));
  $('total').textContent=usd(d.total_usd);$('totsol').textContent=d.total_sol.toFixed(4)+' SOL';
  $('pnl').innerHTML=`<span class="${sgn(d.pnl_usd)}">${usd(d.pnl_usd)}</span>`;$('pnlsub').innerHTML=`${pct(d.pnl_pct)} vs start ${d.start_sol.toFixed(4)} SOL`;
  $('wal').textContent=d.wallet_sol==null?'—':d.wallet_sol.toFixed(4);$('dep').textContent='In trades: '+d.deployed_sol.toFixed(4)+' SOL';
@@ -95,17 +107,31 @@ function render(d){
   $('ostats').innerHTML=`<div><div class="k">Entry</div>${o.entry_sol.toFixed(4)} SOL (${usd(o.entry_usd)})</div><div><div class="k">Now worth (bot)</div>${o.value_sol==null?'—':o.value_sol.toFixed(4)+' SOL ('+usd(o.value_usd)+')'}</div><div><div class="k">Live price value</div><span id="livev">…</span></div><div><div class="k">Entry time</div>${esc(o.entry_time)}</div><div><div class="k">Held</div>${dur(Date.now()/1000-o.buy_ts)}</div><div><div class="k">Best / worst</div><span class="g">${pct(o.high_ret)}</span> / <span class="r">${pct(o.low_ret)}</span></div><div><div class="k">Stop</div>${pct(o.stop_pct)}</div>`;
   $('cwhy').textContent='Why: '+(o.why||'');drawChart(o);applyLive(o);}
  $('tr').innerHTML=d.trades.map(t=>`<tr><td>${esc(t.sell_time||t.buy_time).replace(':00 ',' ')}</td><td><a target="_blank" href="https://pump.fun/coin/${t.mint}">${esc(t.coin)}</a></td><td>${usd(t.buy_usd)}</td><td>${usd(t.sell_usd)}</td><td class="${sgn(t.pnl_usd)}">${usd(t.pnl_usd)} (${pct(t.pnl_pct)})</td><td>${dur(t.hold_s||0)}</td><td>${t.txs.map(x=>`<a target="_blank" href="https://solscan.io/tx/${x.sig}">${x.side[0]}${x.side=='PARTIAL_SELL'?'½':''}</a>`).join(' ')}</td></tr>`).join('')||'<tr><td colspan=7 class="mut">No closed trades yet today</td></tr>';
- $('health').innerHTML=`<div><div class="k">Mode</div>${s.live?'LIVE':'SIM'}</div><div><div class="k">Last heartbeat</div><span class="${s.engine_ok?'g':'r'}">${esc(s.last_heartbeat_et||'—')}</span></div><div><div class="k">Price feed</div><span class="${s.feed_fresh?'g':'r'}">${s.feed_fresh?'fresh':'STALE'} (${s.feed_age_s==null?'?':Math.round(s.feed_age_s)+'s'})</span></div><div><div class="k">Buys</div>${s.halted?'<span class="r">paused</span>':'<span class="g">allowed</span>'}</div>`;
+ $('health').innerHTML=`<div><div class="k">Mode</div><b class="y">${esc(s.mode||'PAPER')}</b></div><div><div class="k">Last heartbeat</div><span class="${s.engine_ok?'g':'r'}">${esc(s.last_heartbeat_et||'—')}</span></div><div><div class="k">Price feed</div><span class="${s.feed_fresh?'g':'r'}">${s.feed_fresh?'fresh':'STALE'} (${s.feed_age_s==null?'?':Math.round(s.feed_age_s)+'s'})</span></div><div><div class="k">Real orders</div><span class="y">disabled (paper)</span></div>`;
  try{renderDesk(d)}catch(e){console.error(e)}
+ try{renderPaper(d)}catch(e){console.error(e)}
  $('feed').innerHTML=d.activity.map(e=>{const cls={buy:'kb',sell:'ks',halt:'kh',stale:'kh',veto:'kv',vamp:'kvamp',swing:'kswing',chart:'kchart',catalyst:'kcat'}[e.kind]||'';const link=e.sig?` <a target="_blank" href="https://solscan.io/tx/${e.sig}">tx</a>`:'';const txt=esc(e.text).replace(/\{\{(\w+)\}\}/g,(m,k)=>`<a target="_blank" href="https://pump.fun/coin/${k}">${esc((d.names||{})[k]||k.slice(0,4)+'…'+k.slice(-4))}</a>`);return `<div class="ev"><span class="t">${esc(e.t)}</span><span class="${cls}">${txt}</span>${link}</div>`}).join('');
+}
+function sol6(x){return x==null||x===''?'—':(Number(x)>=0?'+':'')+Number(x).toFixed(6)}
+function renderPaper(d){const p=d.paper;if(!p){$('paperc').style.display='none';return}
+ const bk=(p.state||{}).books||{};
+ $('pbooks').innerHTML=Object.entries(bk).map(([k,b])=>`<div><div class="k">${k=='real'?'Real-equity paper book':'Research book (hypothetical)'}</div><b>${Number(b.equity_sol).toFixed(5)} SOL</b> <span class="${sgn(b.realized_sol)}">${sol6(b.realized_sol)}</span><div class="mut small">${b.trades} trades · ${b.wins}W/${b.losses}L · streak ${b.consecutive_losses}${b.halted?' · <span class="r">HALTED: '+esc(b.halt_reason)+'</span>':' · entries allowed'}</div><div class="mut small">${esc(b.label)}</div></div>`).join('');
+ $('popen').innerHTML=(p.open||[]).map(o=>`<div class="ev">${coinA(d,o.mint,o.symbol)} · ${esc(o.book)} book · grp ${esc(o.group)} · ${esc(o.setup)} · ${Number(o.size_sol).toFixed(6)} SOL · net now <span class="${sgn(o.last_net_pct||0)}">${pct(o.last_net_pct)}</span> · R:R ${o.net_rr} · held ${dur(Date.now()/1000-o.entry_ts)}</div>`).join('')||'<span class="mut">none — waiting for a setup that clears every check</span>';
+ const G=p.summary||{};const rows=['research:A','research:B','research:all','real:A','real:B','real:all'].filter(k=>G[k]);
+ const n=(x,f)=>x==null?'—':f(x);
+ $('pgroups').innerHTML=rows.map(k=>{const g=G[k];return `<tr><td>${esc(k.replace(':',' · '))}</td><td>${g.trades}</td><td>${n(g.win_rate,x=>(x*100).toFixed(0)+'%')}</td><td>${n(g.avg_net_winner_sol,sol6)}</td><td>${n(g.avg_net_loser_sol,sol6)}</td><td>${n(g.expectancy_sol,sol6)}</td><td>${g.profit_factor==null?'—':g.profit_factor}</td><td>${Number(g.max_drawdown_sol).toFixed(6)}</td><td class="${sgn(g.net_pnl_sol)}">${sol6(g.net_pnl_sol)}</td><td>${Number(g.total_costs_sol).toFixed(6)}</td></tr>`}).join('')||'<tr><td colspan=10 class="mut">No closed paper trades yet</td></tr>';
+ $('ptrades').innerHTML=(p.trades||[]).map(t=>`<tr><td>${esc(t.exit_time_et)}</td><td>${esc(t.book)}</td><td>${esc(t.group)}</td><td>${coinA(d,t.mint,t.symbol)}</td><td>${esc(t.setup)}</td><td>${Number(t.size_sol).toFixed(6)}</td><td>${esc(t.exit_tag)}</td><td class="${sgn(+t.net_pnl_sol)}">${sol6(t.net_pnl_sol)} (${pct(+t.net_pnl_pct)})</td><td>${pct(+t.mfe_net_pct)} / ${pct(+t.mae_net_pct)}</td><td>${dur(+t.hold_s)}</td></tr>`).join('')||'<tr><td colspan=10 class="mut">No paper trades yet</td></tr>';
+ $('pjl').textContent=`(journal ${p.journal_lines} lines: ${p.journal})`;
+ const dc={ENTER:'g',WAIT:'y',REJECT:'r',APPROVE:'g',VETO:'r','NO TRADE':'mut'};
+ $('psigs').innerHTML=(p.recent_signals||[]).map(x=>`<tr><td>${esc(x.t)}</td><td>${coinA(d,x.mint,x.symbol)}</td><td>${esc(x.group)}</td><td>${x.scout=='Q'?'<span class="g">qualified</span>':'<span class="mut">no</span>'}</td><td class="${dc[x.chart]||'mut'}">${esc(x.chart||'—')}</td><td class="${dc[x.skeptic]||'mut'}">${esc(x.skeptic||'—')}</td><td>${esc(x.main||'—')} / ${esc(x.main_real||'—')}</td><td class="small" style="white-space:normal">${esc((x.why||'').slice(0,160))}</td></tr>`).join('')||'<tr><td colspan=8 class="mut">No signals yet</td></tr>';
 }
 function coinA(d,m,sym){return `<a target="_blank" href="https://pump.fun/coin/${m}">${esc((d.names||{})[m]||sym||m.slice(0,4)+'…'+m.slice(-4))}</a>`}
 function renderDesk(d){
  const k=d.desk;if(!k){$('deskc').style.display='none';return}
  $('bots').innerHTML=k.bots.map(b=>`<div class="bot"><h3><span class="dot" style="background:${b.alive?'#22c55e':'#ef4444'}"></span>${esc(b.name)}</h3><div class="mut small">${b.alive?'alive':'<span class="r">not updating</span>'} · last update ${esc(b.last_et||'—')}${b.age_s!=null?' ('+Math.round(b.age_s)+'s ago)':''}</div><div class="mut small">${esc(b.role)}</div><ul>${(b.notes||[]).map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`).join('');
- const vc={healthy:'g',mixed:'y',weak:'r'};
- $('verd').innerHTML=(k.verdicts||[]).slice(0,7).map(v=>`<tr><td>${coinA(d,v.mint,v.symbol)}${v.cand?'<span class="tag pg">candidate</span>':''}</td><td class="${vc[v.verdict]||''}">${esc(v.verdict)} ${Math.round(v.score)}</td><td class="small" style="white-space:normal">${esc((v.notes||[]).slice(0,3).join(' · '))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">No candidates right now</td></tr>';
- $('vetoes').innerHTML=(k.vetoes||[]).slice(0,8).map(v=>`<tr><td>${coinA(d,v.mint,v.symbol)}${v.cand?'<span class="tag pg">candidate</span>':''}</td><td>${v.veto?'<span class="pill pr">VETO</span>':'<span class="pill pg">no objection</span>'}</td><td class="small" style="white-space:normal">${esc((v.veto?v.reasons:v.soft).join(' · '))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">Nothing to argue about</td></tr>';
+ const vc={ENTER:'g',WAIT:'y',REJECT:'r',healthy:'g',mixed:'y',weak:'r'};
+ $('verd').innerHTML=(k.verdicts||[]).slice(0,7).map(v=>`<tr><td>${coinA(d,v.mint,v.symbol)}${v.cand?'<span class="tag pg">candidate</span>':''}</td><td class="${vc[v.verdict]||''}">${esc(v.verdict)}${v.rr!=null?' · R:R '+Number(v.rr).toFixed(2):''}</td><td class="small" style="white-space:normal">${esc((v.notes||[]).slice(0,3).join(' · '))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">No candidates right now</td></tr>';
+ $('vetoes').innerHTML=(k.vetoes||[]).slice(0,8).map(v=>`<tr><td>${coinA(d,v.mint,v.symbol)}${v.cand?'<span class="tag pg">candidate</span>':''}</td><td>${v.decision=='VETO'||v.veto?'<span class="pill pr">VETO</span>':v.decision=='WAIT'?'<span class="pill py">WAIT</span>':'<span class="pill pg">APPROVE</span>'}</td><td class="small" style="white-space:normal">${esc(((v.decision=='VETO'||v.veto)?v.reasons:v.soft).join(' · '))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">Nothing to argue about</td></tr>';
  $('rvetoes').innerHTML=(k.recent_vetoes||[]).slice(0,6).map(x=>`<div class="ev"><span class="t">${esc(x.t)}</span>${coinA(d,x.mint,x.symbol)}: ${esc(x.reasons.join('; '))}</div>`).join('')||'<span class="mut">none yet</span>';
  $('swt').textContent=k.swing.t?'(checked '+k.swing.t+', every 5 min, moves ≥15%)':'';
  $('swing').innerHTML=(k.swing.items||[]).map(x=>`<div class="ev">${coinA(d,x.mint,x.symbol)} <span class="${x.move_pct>=0?'g':'r'}">${x.move_pct>=0?'+':''}${Number(x.move_pct).toFixed(0)}%</span> <span class="mut">${esc(x.src)}</span></div>`).join('')||'<span class="mut">no big swings</span>';
